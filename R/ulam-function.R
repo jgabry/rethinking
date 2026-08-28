@@ -1401,7 +1401,11 @@ ulam <- function( flist , data , pars , pars_omit , start , chains=1 , cores=1 ,
     }
 
     if ( threads>1 ) cpp_options[['stan_threads']] <- TRUE
-    threads_arg <- if ( threads>1 ) threads else NULL
+    get_threads_arg <- function( mod ) {
+        mod_cpp_options <- mod$cpp_options()
+        stan_threads <- mod_cpp_options[ tolower(names(mod_cpp_options))=="stan_threads" ]
+        if ( any(vapply(stan_threads,isTRUE,logical(1))) ) threads else NULL
+    }
 
     # dangerous compile settings that can improve run times
     if ( cpp_fast==TRUE ) {
@@ -1436,7 +1440,7 @@ ulam <- function( flist , data , pars , pars_omit , start , chains=1 , cores=1 ,
                         iter_warmup=warmup, iter_sampling=floor(iter-warmup) , 
                         save_warmup=TRUE ,
                         adapt_delta=as.numeric(control[['adapt_delta']]) ,
-                        threads_per_chain=threads_arg , ... )
+                        threads_per_chain=get_threads_arg(mod) , ... )
                     if ( rstanout==TRUE )
                         stanfit <- rstan::read_stan_csv(cmdstanfit$output_files())
                     else
@@ -1467,7 +1471,7 @@ ulam <- function( flist , data , pars , pars_omit , start , chains=1 , cores=1 ,
                         iter_warmup=warmup, iter_sampling=floor(iter-warmup) , 
                         save_warmup=TRUE ,
                         adapt_delta=as.numeric(control[['adapt_delta']]) ,
-                        threads_per_chain=threads_arg , ... )
+                        threads_per_chain=get_threads_arg(mod) , ... )
                     if ( rstanout==TRUE )
                         stanfit <- rstan::read_stan_csv(cmdstanfit$output_files())
                     else
@@ -1506,7 +1510,7 @@ ulam <- function( flist , data , pars , pars_omit , start , chains=1 , cores=1 ,
                         save_warmup=TRUE ,
                         adapt_delta=as.numeric(control[['adapt_delta']]) ,
                         init = f_init ,
-                        threads_per_chain=threads_arg , ... )
+                        threads_per_chain=get_threads_arg(mod) , ... )
                     if ( rstanout==TRUE )
                         stanfit <- rstan::read_stan_csv(cmdstanfit$output_files())
                     else
